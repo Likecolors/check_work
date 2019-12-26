@@ -21,3 +21,5 @@ Route::get('/', function () {
 Route::post('OAuth/login', 'OAuth\AuthController@login');
 Route::view('/index', 'index');
 Route::view('/admin', 'admin');
+Route::get('/MessageManage/GetMeassageController','MessageManage\GetMeassageController@adminGetmessage');
+Route::get('/MessageManage/AdminDeleteController','MessageManage\AdminDeleteController@adminDelete');
