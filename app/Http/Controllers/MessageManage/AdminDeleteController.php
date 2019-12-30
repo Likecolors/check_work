@@ -4,7 +4,6 @@ namespace App\Http\Controllers\MessageManage;
 
 use App\Http\Controllers\Controller;
 use App\Models\chat_records;
-use App\Models\users;
 use App\Utils\Logs;
 use Illuminate\Http\Request;
 
