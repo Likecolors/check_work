@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\MessageManage;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\MessageManage\Search;
 use App\Models\chat_records;
 use App\Models\users;
 use App\Utils\Logs;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
+
 class GetMeassageController extends Controller
 {
     //
@@ -19,10 +22,10 @@ class GetMeassageController extends Controller
             $datas = [];
             $info_admin = users::select("users.department_name", "chat_records.*")->join("chat_records", function ($join) {
             $join->on('users.id', '=', 'chat_records.from_user_id');
-        })->where("from_user_id", "=", 1)->orderBy('created_at', 'desc')->get()->groupBy("to_user_id")->toArray();//管理员发送消息分组
+        })->where("from_user_id", "=", Auth::id())->orderBy('created_at', 'desc')->get()->groupBy("to_user_id")->toArray();//管理员发送消息分组
             $info_users = users::select("users.department_name", "chat_records.*")->join("chat_records", function ($join) {
                 $join->on('users.id', '=', 'chat_records.to_user_id');
-            })->where("to_user_id", "=", 1)->orderBy('created_at', 'desc')->get()->groupBy("from_user_id")->toArray();//用户发送信息分组，最新信息在顶部
+            })->where("to_user_id", "=", Auth::id())->orderBy('created_at', 'desc')->get()->groupBy("from_user_id")->toArray();//用户发送信息分组，最新信息在顶部
             $datas=$this->compara_1($this->disposeData($info_admin),$this->disposeData($info_users));
             $paginator = $this->paginator($request,$datas);//分页
             return response()->json(["code" => 200, "msg" => "success", "data" => $paginator]);
@@ -125,18 +128,18 @@ class GetMeassageController extends Controller
         ]);
         return $paginator;
     }
-    public function getMessage_search(Request $request)
+    public function getMessage_search(Search $request)
     {
         try
         {
             $datas = [];
             $department_name = $request->input("department_name");
             $info_admin = chat_records::select("users.department_name", "chat_records.*")->join("users", function ($join) {
-                $join->on('users.id', '=', 'chat_records.to_user_id')->where("users.id",'<>',1);
+                $join->on('users.id', '=', 'chat_records.to_user_id')->where("users.id",'<>',Auth::id());
             })->where("department_name",$department_name)->where("from_user_id", "=", 1)->orderBy('created_at', 'desc')->get()->groupBy("to_user_id")->toArray();//管理员发送消息分组
             $info_users = chat_records::select("users.department_name", "chat_records.*")->join("users", function ($join) {
-                $join->on('users.id', '=', 'chat_records.from_user_id')->where("users.id",'<>',1);
-            })->where("to_user_id", "=", 1)->where("department_name",$department_name)->orderBy('created_at', 'desc')->get()->groupBy("from_user_id")->toArray();//用户发送信息分组，最新信息在顶部
+                $join->on('users.id', '=', 'chat_records.from_user_id')->where("users.id",'<>',Auth::id());
+            })->where("to_user_id", "=", Auth::id())->where("department_name",$department_name)->orderBy('created_at', 'desc')->get()->groupBy("from_user_id")->toArray();//用户发送信息分组，最新信息在顶部
            // dd($info_users);
             $datas=$this->compara_1($this->disposeData($info_admin),$this->disposeData($info_users));
             $paginator = $this->paginator($request,$datas);//分页
